@@ -1,0 +1,9 @@
+[global]
+backupdir = /home/user/backup
+
+[server1]
+host = server1.domain.com
+home = /home/otheruser
+folders = Documents Downloads Music Pictures Videos
+speed = 500
+
