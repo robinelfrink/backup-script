@@ -12,7 +12,7 @@ from datetime import timedelta
 import os
 import re
 import sys
-from subprocess import call
+from subprocess import Popen, PIPE
 
 
 # Parse arguments
@@ -59,6 +59,28 @@ def rsync(source, destination, speed=0, rsync=None):
 	return command
 
 
+def execute(command, location):
+	if args.verbose>0:
+		p = Popen(command)
+		p.communicate()
+	else:
+		p = Popen(command, stdout=PIPE, stderr=PIPE)
+		out, err = p.communicate()
+	if p.returncode>1:
+		print 'Backup of {} failed.'.format(location)
+		if args.verbose<1:
+			print ''
+			print 'This is the error:'.format(location)
+			print
+			print err
+			print ''
+			print ''
+			print 'This is the full output:'
+			print ''
+			print out
+		sys.exit(1)
+
+
 # Make backup
 for location in locations:
 	for folder in re.compile('[\s,:]+').split(config.get(location, 'folders')):
@@ -67,10 +89,10 @@ for location in locations:
 			rsyncpath = config.get(location, 'rsync') if config.has_option(location, 'rsync') else None
 			source = config.get(location, 'host') + ':' + config.get(location, 'home') + os.sep + folder
 			# Sync
-			result = call(rsync(source, destination, config.get(location, 'speed'), rsyncpath))
+			execute(rsync(source, destination, config.get(location, 'speed'), rsyncpath), location)
 			# Link
 			if not args.dry_run:
-				result = call([ '/bin/cp', '-rl', destination + os.sep + 'current', destination + os.sep + today])
+				execute([ '/bin/cp', '-rl', destination + os.sep + 'current', destination + os.sep + today], location)
 		else:
 			source = config.get(location, 'home') + os.sep + folder
 			# Create destination folder
@@ -78,7 +100,7 @@ for location in locations:
 				os.makedirs(destination)
 			# Link
 			if not args.dry_run:
-				result = call([ '/bin/cp', '-rl', source, destination + os.sep + today ])
+				execute([ '/bin/cp', '-rl', source, destination + os.sep + today ], location)
 		# Clean up
 		for backup in filter(re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}$').match, sorted(os.listdir(destination))):
 			if not re.search('-01$', backup) and backup < twoweeksago:
