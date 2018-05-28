@@ -5,6 +5,7 @@
 # 
 
 
+import argparse
 import ConfigParser
 from datetime import date
 from datetime import timedelta
@@ -14,9 +15,15 @@ import sys
 from subprocess import call
 
 
+# Parse arguments
+parser = argparse.ArgumentParser(description='Backup script, using rsync.')
+parser.add_argument('config', default=sys.path[0]+os.sep+'backup.ini', help='Configuration file')
+args = parser.parse_args()
+
+
 # Read configuration
 config = ConfigParser.ConfigParser()
-config.read(sys.path[0] + os.sep + 'backup.ini')
+config.read(args.config)
 
 
 # Set variables
