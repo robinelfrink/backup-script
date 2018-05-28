@@ -37,7 +37,7 @@ twoweeksago = (date.today() - timedelta(days=14)).strftime('%Y-%m-%d')
 
 # Create rsync command line
 def rsync(source, destination, speed=0, rsync=None):
-	command = [ '/usr/bin/rsync', '-avz', '--del' ]
+	command = [ '/usr/bin/rsync', '-avz', '--del', '--no-perms', '--no-owner', '--no-group']
 	if args.dry_run:
 		command.append('--dry-run')
 	if args.verbose>0:
