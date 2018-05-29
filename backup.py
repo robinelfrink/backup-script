@@ -105,3 +105,4 @@ for location in locations:
 		for backup in filter(re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}$').match, sorted(os.listdir(destination))):
 			if not re.search('-01$', backup) and backup < twoweeksago:
 				call([ '/bin/rm', '-rf', destination + os.sep + backup ])
+        print 'Backup of {} succeeded.'.format(location)
