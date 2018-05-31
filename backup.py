@@ -61,14 +61,19 @@ def rsync(source, destination, speed=0, rsync=None):
 
 def execute(command, location):
 	if args.verbose>0:
-		p = Popen(command)
-		p.communicate()
+		p = Popen(command, stdout=PIPE)
+		g = Popen(['/bin/grep', '-v', 'uptodate'], stdin=p.stdout)
+		p.stdout.close();
+		g.communicate()
+		if g.returncode>1:
+			sys.exit(1)
 	else:
 		p = Popen(command, stdout=PIPE, stderr=PIPE)
-		out, err = p.communicate()
-	if p.returncode>1:
-		print 'Backup of {} failed.'.format(location)
-		if args.verbose<1:
+		g = Popen(['/bin/grep', '-v', 'uptodate'], stdin=p.stdout, stdout=PIPE, stderr=PIPE)
+		p.stdout.close();
+		out, err = g.communicate()
+		if g.returncode>1:
+			print 'Backup of {} failed.'.format(location)
 			print ''
 			print 'This is the error:'.format(location)
 			print
@@ -78,7 +83,7 @@ def execute(command, location):
 			print 'This is the full output:'
 			print ''
 			print out
-		sys.exit(1)
+			sys.exit(1)
 
 
 # Make backup
@@ -105,4 +110,4 @@ for location in locations:
 		for backup in filter(re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}$').match, sorted(os.listdir(destination))):
 			if not re.search('-01$', backup) and backup < twoweeksago:
 				call([ '/bin/rm', '-rf', destination + os.sep + backup ])
-        print 'Backup of {} succeeded.'.format(location)
+	print 'Backup of {} succeeded.'.format(location)
